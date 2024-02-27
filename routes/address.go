@@ -8,8 +8,19 @@ import (
 )
 
 type UpdateAddrReq struct {
-	Addr string `json:"addr" binding:"required"`
+	//Addr string `json:"addr" binding:"required"`
 	Type string `json:"type" binding:"required"`
+}
+
+func readUserIp(r *http.Request) string {
+	IPAddress := r.Header.Get("X-Real-Ip")
+	if IPAddress == "" {
+		IPAddress = r.Header.Get("X-Forwarded-For")
+	}
+	if IPAddress == "" {
+		IPAddress = r.RemoteAddr
+	}
+	return IPAddress
 }
 
 func GetAddress(c *gin.Context) {
@@ -21,8 +32,9 @@ func UpdateAddress(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	ip := readUserIp(c.Request)
 	if req.Type == config.T2I {
-		config.UpdateT2IAddr(req.Addr)
+		config.UpdateT2IAddr(ip)
 	}
-	c.JSON(http.StatusOK, gin.H{"code": 0, "msg": "啊对对对"})
+	c.JSON(http.StatusOK, gin.H{"code": 0, "msg": "啊对对对" + ip})
 }
